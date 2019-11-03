@@ -18,7 +18,7 @@ to get a better understanding of the situation.  The image to pay attention to
 is labelled **Mode $20 ("LoROM") Memory Map**.  A summation would be:
 
 * Banks $00-7D operate in normal speed (2.68MHz) mode
-* Banks $80-FF operate in high speed (3.58MHz) mode when bit 0 of $420A is set to 1
+* Banks $80-FF operate in high speed (3.58MHz) mode when bit 0 of $420D is set to 1
 
 Banks $00-7D are essentially mirrors of banks $80-FD.
 
