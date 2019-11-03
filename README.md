@@ -4,6 +4,8 @@
 * [ca65](ca65/) -- LoROM, slowrom/normal speed (2.68MHz)
 * [original](original/) -- the original code/files to `hdmademo`, circa 1993
 
+ROMs for each are kept within their respective directory.
+
 ## History
 
 In August 1993, minus (a.k.a. Norman Yen) released a small SNES demo called
