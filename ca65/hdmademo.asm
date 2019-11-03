@@ -132,16 +132,9 @@ bg2x_data:    .res $02A1          ; RAM for HDMA table
 bg2x_dataLen = *-bg2x_data
 
 .segment "CODE"
-
-; NOTE: DO NOT TURN THE SNES INIT PORTION INTO A SUBROUTINE!  This
-; is a macro for a very good reason: part of it clears RAM, which
-; includes the used region for the stack!  Rather than make
-; exceptions, it's just easier to do it this way.
-
 .proc RESET
     sei                           ; Inhibit interrupts
-    jml :+                        ; 3.58MHz compatibility (set K to $80-FF range)
-:   clc                           ; Native 65816 mode
+    clc                           ; Native 65816 mode
     xce
     phk                           ; B = current code bank
     plb
@@ -150,6 +143,11 @@ bg2x_dataLen = *-bg2x_data
     tcd
     ldx #$01ff                    ; S = $01FF
     txs
+
+; NOTE: DO NOT TURN THE SNES INIT PORTION INTO A SUBROUTINE!  This
+; is a macro for a very good reason: part of it clears RAM, which
+; includes the used region for the stack!  Rather than make
+; exceptions, it's just easier to do it this way.
 
     sep #$30        ; make X, Y, A all 8-bits
     lda #$8f        ; forced blanking (screen off), full brightness
@@ -233,7 +231,7 @@ bg2x_dataLen = *-bg2x_data
     stz $420A       ; vertical count timer MSB
     stz $420B       ; general DMA enable (bits 0-7)
     stz $420C       ; horizontal DMA (HDMA) enable (bits 0-7)
-    stz $420D       ; access cycle designation (slow/fast rom)
+    stz $420D       ; access cycle designation (slowrom/normal 2.68MHz)
 
 ; We use these CPU register sizes throughout the rest of the entire demo
     rep #$30                      ; A/X/Y=16
@@ -396,9 +394,7 @@ mainLoop:
 ;; Vertical blank interrupt routine (uses A and X regs)                    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .proc NMI
-    jml :+                        ; 3.58MHz compatibility (set K to $80-FF range)
-
-:   pha
+    pha
     phx
     lda $4210                     ; Clear NMI latch
 
@@ -445,7 +441,7 @@ ZeroByte: .byte $00
     .byte $00                     ; $FFBE:      Special version ($00 = default)
     .byte $00                     ; $FFBF:      Cartridge sub-type ($00 = default)
     .byte "(C) 1993 Norman Yen  " ; $FFC0-FFD4: Title (21 bytes, space-padded)
-    .byte $20                     ; $FFD5:      Mode ($20 = LoROM, normal speed)
+    .byte $20                     ; $FFD5:      Mode ($20 = LoROM, slowrom/normal 2.68MHz)
     .byte $00                     ; $FFD6:      Type ($00 = ROM only)
     .byte $08                     ; $FFD7:      ROM size ($08 = 2mbit / 256KB)
     .byte $00                     ; $FFD8:      SRAM size ($00 = none)
