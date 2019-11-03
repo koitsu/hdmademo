@@ -1,11 +1,13 @@
-; hdmademo (a.k.a. Butterfish demo)
+; hdmademo (a.k.a. "Butterfish" demo)
 ;
 ; Original author: Norman Yen / minus, 1993
-; Originally intended for Tricks Assembler or x816
+; Originally intended for Tricks Assembler
 ;
 ; Modified by: Jeremy Chadwick / koitsu, 2019
-; Includes several bugfixes and general improvements
+; Includes several bugfixes and general improvements; see README.md
+;
 ; Intended for use with ca65 v2.18 or newer
+;
 ; Do not use with ca65 v2.17 or older, as it contains bugs that
 ; will result in bad code (ee comments near end of file).
 ; For Windows, I recommend using the Windows Snapshot builds linked here:
@@ -502,13 +504,6 @@ ZeroByte: .byte $00
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BG1 (fish) data                                                         ;;
-;; Author: Unknown, 1990 or earlier                                        ;;
-;; Source: http://cd.textfiles.com/somuch/smsharew/GIFS/BUTRFISH.GIF       ;;
-;; Source: http://cd.textfiles.com/internetconnection/gifb/butrfish.gif    ;;
-;; List:   http://textfiles.com/bbs/FILELISTS/allfile3.txt                 ;;
-;; Some references to this image in Amiga HAM8 format are here:            ;;
-;; http://aminet.net/package/demo/aga/ADemo93.5                            ;;
-;; http://www.pentor.gmxhome.de/Guide/Customs-FAKTEN.html                  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .segment "BANK01"
 
@@ -523,10 +518,6 @@ BG1CHRLen = *-BG1CHR
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; BG2 (reef) data                                                         ;;
-;; Author: Unknown, 1992 or earlier                                        ;;
-;; Source: http://cd.textfiles.com/gifgalaxy/PIC/GIF08/REEF1.GIF           ;;
-;; List:   http://cd.textfiles.com/gifgalaxy/KATALOG/GIF08.TXT             ;;
-;; List:   http://cd.textfiles.com/somuch/smscreenw/SCREEN.TXT             ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .segment "BANK02"
 
