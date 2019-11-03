@@ -51,3 +51,8 @@ other common vector points within the `CODE` segment.  I did this because I
 hate using `.segment` over and over -- I prefer to organise my code based on
 what is in that segment and not switch segments excessively.
 
+# Changing $420D
+
+The final piece to the puzzle is the easiest: setting bit 0 of $420D to 1.
+This enables the 3.58MHz access cycle in said banks.
+
