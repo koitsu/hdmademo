@@ -1,7 +1,7 @@
 # hdmademo
 
-* [ca65](ca65/) -- `hdmademo` ported to ca65.  LoROM, normal speed
-* [ca65-fastrom](ca65-fastrom/) -- same as `ca65` but LoROM, high speed (3.65MHz)
+* [ca65-fastrom](ca65-fastrom/) -- LoROM, fastrom/high speed (3.58MHz)
+* [ca65](ca65/) -- LoROM, slowrom/normal speed (2.68MHz)
 * [original](original/) -- the original code/files to `hdmademo`, circa 1993
 
 ## History
