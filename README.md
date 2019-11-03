@@ -34,8 +34,9 @@ using Windows-based tools.  I had some additional goals:
 
 * Strict KISS compliance, e.g. keep code in a single file, do not make use of
   IDEs, do not excessively "modularise" code, no excess dependencies, etc.
-* Convert the source to several assemblers, mainly x816, ca65, and YMAS (an
-  up-and-coming multi-CPU cross assembler _again_ by minus)
+* Convert the source to several assemblers, mainly x816, ca65, and
+  [YMAS](https://forums.nesdev.com/viewtopic.php?f=12&t=18889)
+  (an up-and-coming 6502/65816/SPC700/SuperFX cross assembler _again_ by minus)
 * Explain on the stream what each line or section of code was doing.  I found
   this to be challenging, since HDMA in particular is something I never spent
   much time with.
