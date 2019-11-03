@@ -1,0 +1,380 @@
+; equates
+joypad1lo  equ $0000
+joypad1hi  equ $0001
+p0scrollx  equ $0002
+p0scrolly  equ $0004
+hdmaStart  equ $0006
+fishIndex  equ $0008
+p1xscrolls equ $1000
+
+; assemble at $8000
+	org $8000
+
+; program start
+start
+	sei             ; disable interrupts
+	phk             ; push current bank on stack
+	plb             ; pop it off the stack and make it the current programming bank
+	clc
+	xce             ; native 16-bit mode
+
+; initialise SNES
+	sep #$30        ; make X, Y, A all 8-bits
+	lda #$80        ; screen off, no brightness
+	sta $2100       ; brightness & screen enable register
+	lda #$00
+	sta $2101       ; sprite register (size & address in VRAM)
+	sta $2102       ; sprite registers (address of sprite memory [OAM])
+	sta $2103       ; sprite registers (address of sprite memory [OAM])
+	sta $2105       ; graphic mode register
+	sta $2106       ; mosaic register
+	sta $2107       ; plane 0 map VRAM location
+	sta $2108       ; plane 1 map VRAM location
+	sta $2109       ; plane 2 map VRAM location
+	sta $210A       ; plane 3 map VRAM location
+	sta $210B       ; plane 0 & 1 Tile data location
+	sta $210C       ; plane 2 & 3 Tile data location
+	sta $210D       ; plane 0 scroll x (first 8 bits)
+	sta $210D       ; plane 0 scroll x (last 3 bits)
+	sta $210E       ; plane 0 scroll y (first 8 bits)
+	sta $210E       ; plane 0 scroll y (last 3 bits)
+	sta $210F       ; plane 1 scroll x (first 8 bits)
+	sta $210F       ; plane 1 scroll x (last 3 bits)
+	sta $2110       ; plane 1 scroll y (first 8 bits)
+	sta $2110       ; plane 1 scroll y (last 3 bits)
+	sta $2111       ; plane 2 scroll x (first 8 bits)
+	sta $2111       ; plane 2 scroll x (last 3 bits)
+	sta $2112       ; plane 2 scroll y (first 8 bits)
+	sta $2112       ; plane 2 scroll y (last 3 bits)
+	sta $2113       ; plane 3 scroll x (first 8 bits)
+	sta $2113       ; plane 3 scroll x (last 3 bits)
+	sta $2114       ; plane 3 scroll y (first 8 bits)
+	sta $2114       ; plane 3 scroll y (last 3 bits)
+	lda #$80        ; increase VRAM address after writing to $2119
+	sta $2115       ; VRAM address increment register
+	lda #$00
+	sta $2116       ; VRAM address low
+	sta $2117       ; VRAM address high
+	sta $211A       ; initial mode 7 setting register
+	sta $211B       ; mode 7 matrix parameter A register (low)
+	lda #$01
+	sta $211B       ; mode 7 matrix parameter A register (high)
+	lda #$00
+	sta $211C       ; mode 7 matrix parameter B register (low)
+	sta $211C       ; mode 7 matrix parameter B register (high)
+	sta $211D       ; mode 7 matrix parameter C register (low)
+	sta $211D       ; mode 7 matrix parameter C register (high)
+	sta $211E       ; mode 7 matrix parameter D register (low)
+	lda #$01
+	sta $211E       ; mode 7 matrix parameter D register (high)
+	lda #$00
+	sta $211F       ; mode 7 center position X register (low)
+	sta $211F       ; mode 7 center position X register (high)
+	sta $2120       ; mode 7 center position Y register (low)
+	sta $2120       ; mode 7 center position Y register (high)
+	sta $2121       ; color number register ($00-$ff)
+	sta $2123       ; bg1 & bg2 window mask setting register
+	sta $2124       ; bg3 & bg4 window mask setting register
+	sta $2125       ; obj & color window mask setting register
+	sta $2126       ; window 1 left position register
+	sta $2127       ; window 2 left position register
+	sta $2128       ; window 3 left position register
+	sta $2129       ; window 4 left position register
+	sta $212A       ; bg1, bg2, bg3, bg4 window logic register
+	sta $212B       ; obj, color window logic register (or, and, xor, xnor)
+	lda #$01
+	sta $212C       ; main screen designation (planes, sprites enable)
+	lda #$00
+	sta $212D       ; sub screen designation
+	sta $212E       ; window mask for main screen
+	sta $212F       ; window mask for sub screen
+	lda #$30
+	sta $2130       ; color addition & screen addition init setting
+	lda #$00
+	sta $2131       ; add/sub sub designation for screen, sprite, color
+	lda #$E0
+	sta $2132       ; color data for addition/subtraction
+	lda #$00
+	sta $2133       ; screen setting (interlace x,y/enable SFX data)
+	sta $4200       ; enable v-blank, interrupt, joypad register
+	lda #$FF
+	sta $4201       ; programmable I/O port
+	lda #$00
+	sta $4202       ; multiplicand A
+	sta $4203       ; multiplier B
+	sta $4204       ; multiplier C
+	sta $4205       ; multiplicand C
+	sta $4206       ; divisor B
+	sta $4207       ; horizontal count timer
+	sta $4208       ; horizontal count timer MSB
+	sta $4209       ; vertical count timer
+	sta $420A       ; vertical count timer MSB
+	sta $420B       ; general DMA enable (bits 0-7)
+	sta $420C       ; horizontal DMA (HDMA) enable (bits 0-7)
+	sta $420D       ; access cycle designation (slow/fast rom)
+
+; set register modes
+	rep #$30        ; make X, Y, A all 16-bits
+	sep #$20        ; make A 8-bits
+
+; initialise graphics hardware
+	lda #$01        ; graphics mode 1
+	sta $2105
+
+	lda #$03        ; enable planes 0 & 1
+	sta $212c
+
+	lda #$01        ; set plane 0 memory to $0000, 64 chars wide
+	sta $2107
+    lda #$08        ; set plane 1 memory to $0800
+    sta $2108
+	lda #$31        ; set plane 0 character set to $1000, plane 1 to $3000
+	sta $210b
+
+; copy screen map data
+	ldx.w #$0000    ; set VRAM pointer to plane 0 memory location, screen 1
+	stx $2116
+    ldx.w #$1801    ; dma to $2118
+    stx $4300
+    ldx.w #picData1&$FFFF ; source offset
+    stx $4302
+    lda #picData1/$10000&$FF ; source bank
+    sta $4304
+    ldx.w #$0800    ; number of bytes
+    stx $4305
+    lda #$01        ; do dma
+    sta $420B
+
+; clear plane 0, screen 2
+    ldx.w #$0400
+clearLoop
+    stz $2118
+    stz $2119
+    dex
+    bpl clearLoop
+
+; set colour registers
+    lda #$00        ; select colour register 0
+    sta $2121
+    ldx.w #$2200    ; dma to $2122
+    stx $4300
+    ldx.w #picData1+$800&$FFFF ; source offset
+    stx $4302
+    lda #picData1+$800/$10000 ; source bank
+    sta $4304
+    ldx.w #$20      ; number of bytes
+    stx $4305
+    lda #$01        ; do dma
+    sta $420B
+
+; set tile data
+	ldx.w #$1000     ; set VRAM pointer to character set location
+	stx $2116
+    ldx.w #$1801    ; dma to $2118
+    stx $4300
+    ldx.w #picData1+$820&$FFFF ; source offset
+    stx $4302
+    lda #picData1+$820/$10000 ; source bank
+    sta $4304
+    ldx.w #$3940    ; number of bytes
+    stx $4305
+    lda #$01        ; do dma
+    sta $420B
+
+; copy screen map data
+	ldx.w #$0800    ; set VRAM pointer to plane 1 memory location
+	stx $2116
+    ldx.w #$1801    ; dma to $2118
+    stx $4300
+    ldx.w #picData2&$FFFF ; source offset
+    stx $4302
+    lda #picData2/$10000&$FF ; source bank
+    sta $4304
+    ldx.w #$0800    ; number of bytes
+    stx $4305
+    lda #$01        ; do dma
+    sta $420B
+
+; set colour registers
+    lda #$10        ; select colour register 16
+    sta $2121
+    ldx.w #$2200    ; dma to $2122
+    stx $4300
+    ldx.w #picData2+$800&$FFFF ; source offset
+    stx $4302
+    lda #picData2+$800/$10000 ; source bank
+    sta $4304
+    ldx.w #$20      ; number of bytes
+    stx $4305
+    lda #$01        ; do dma
+    sta $420B
+
+; set tile data
+    ldx.w #$3000    ; set VRAM pointer to character set location
+    stx $2116
+    ldx.w #$1801    ; dma to $2118
+    stx $4300
+    ldx.w #picData2+$820&$FFFF ; source offset
+    stx $4302
+    lda #picData2+$820/$10000 ; source bank
+    sta $4304
+    ldx.w #$7440    ; number of bytes
+    stx $4305
+    lda #$01        ; do dma
+    sta $420B
+
+; initialise variables
+    ldx.w #$0000
+    stx p0scrollx
+    stx p0scrolly
+    stx hdmaStart
+    stx fishIndex
+    jsr evaluateHdmaValues
+
+; configure horizontal dma
+    lda #$02        ; 2 byte format (count, byte1, byte2)
+    sta $4300
+    lda #$0F        ; plane 1 x-scroll at $210F
+    sta $4301
+    ldx.w #p1xscrolls&$FFFF ; hdma list location
+    stx $4302
+    lda #p1xscrolls/$10000 ; hdma list bank
+    sta $4304
+
+	lda #$81        ; enable vertical blank interrupt & joypad read
+	sta $4200
+
+    cli
+
+	lda #$0F        ; enable screen, full brightness
+	sta $2100
+
+    lda #$01        ; enable hdma 1
+    sta $420c
+
+mainLoop
+
+    wai
+
+; scroll fish horizontally
+    ldx p0scrollx
+    dex
+    stx p0scrollx
+
+; scroll fish vertically
+    ldx fishIndex
+    lda sineFishTable,x
+    inx
+    sta p0scrolly
+    lda sineFishTable,x
+    inx
+    sta p0scrolly+$01
+    cpx.w #$100
+    bne saveFishIndex
+    ldx.w #$00
+saveFishIndex
+    stx fishIndex
+
+; scroll reef background
+    jsr evaluateHdmaValues
+
+    bra mainLoop
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; set the hdma values                                                     ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+evaluateHdmaValues
+    ldx.w #$0000
+    ldy hdmaStart
+hdmaLoop
+    lda #$01
+    sta p1xscrolls,x
+    inx
+    lda sineHdmaTable,y
+    iny
+    sta p1xscrolls,x
+    inx
+    lda sineHdmaTable,y
+    iny
+    sta p1xscrolls,x
+    inx
+    cpx.w #$02A0
+    bne hdmaLoop
+    lda #$00
+    sta p1xscrolls,x
+
+    ldx hdmaStart
+    inx
+    inx
+    cpx.w #$01C0
+    bne storeNextHdmaStart
+    ldx.w #$0000
+storeNextHdmaStart
+    stx hdmaStart
+
+    rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; vertical blank interrupt routine                                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+verticalBlankInterrupt
+    pha             ; save accumulator
+
+    lda p0scrollx
+    sta $210d
+    lda p0scrollx+$01
+    sta $210d
+
+    lda p0scrolly
+    sta $210e
+    lda p0scrolly+$01
+    sta $210e
+
+waitForJoypad       ; otherwise read joypad
+	lda $4212       ; wait until the joypad is ready to read
+	and #$01
+	bne waitForJoypad
+
+	lda $4218       ; read joypad
+    sta joypad1lo
+    lda $4219
+    sta joypad1hi
+
+    pla             ; restore accumulator
+    rti             ; exit vertical blank
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; sine table for hdma                                                     ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+sineHdmaTable
+    incbin "sine.bin"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; sine table for fish                                                     ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+sineFishTable
+    incbin "fishsine.bin"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; picture 1 data (big fish)                                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+picData1
+    incbin "butrfish.dat"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; vertical blank & run/reset vectors                                      ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    pad $FFEA
+    dc.w verticalBlankInterrupt
+
+	pad $FFFC
+	dc.w start
+
+    pad
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; picture 2 data (reef)                                                   ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+picData2
+    incbin "reef.dat"
