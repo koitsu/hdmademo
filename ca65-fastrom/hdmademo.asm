@@ -158,11 +158,6 @@ bg2x_dataLen = *-bg2x_data
     ldx #$01ff                    ; S = $01FF
     txs
 
-; NOTE: DO NOT TURN THE SNES INIT PORTION INTO A SUBROUTINE!  This
-; is a macro for a very good reason: part of it clears RAM, which
-; includes the used region for the stack!  Rather than make
-; exceptions, it's just easier to do it this way.
-
     sep #$30        ; make X, Y, A all 8-bits
     lda #$8f        ; forced blanking (screen off), full brightness
     sta $2100       ; brightness & screen enable register
