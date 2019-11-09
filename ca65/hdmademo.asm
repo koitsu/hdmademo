@@ -97,7 +97,7 @@ bg1y_start  = 0                   ; BG1 (fish) Y scroll starting position
     stx $4302
     lda #.bankbyte(srcaddr)       ; Source bank
     sta $4304
-    ldx #length                   ; Length ($0000 = 65536 bytes)
+    ldx #(length & $FFFF)         ; Length ($0000 = 65536 bytes)
     stx $4305
     lda #$01                      ; Do DMA via channel 0
     sta $420B
@@ -114,7 +114,7 @@ bg1y_start  = 0                   ; BG1 (fish) Y scroll starting position
     stx $4302
     lda #.bankbyte(srcaddr)       ; Source bank
     sta $4304
-    ldx #length                   ; Length ($0000 = 65536 bytes)
+    ldx #(length & $FFFF)         ; Length ($0000 = 65536 bytes)
     stx $4305
     lda #$01                      ; Do DMA via channel 0
     sta $420B
